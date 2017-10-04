@@ -84,6 +84,7 @@ class Insect(object):
 
     is_ant = False
     damage = 0
+    watersafe = False
 
     def __init__(self, armor, place=None):
         """Create an Insect with an ARMOR amount and a starting PLACE."""
@@ -118,6 +119,7 @@ class Bee(Insect):
 
     name = 'Bee'
     damage = 1
+    watersafe = True
 
     def sting(self, ant):
         """Attack an ANT, reducing its armor by 1."""
@@ -220,7 +222,9 @@ class Water(Place):
     def add_insect(self, insect):
         """Add INSECT if it is watersafe, otherwise reduce its armor to 0."""
         # BEGIN Problem 3
-        "*** YOUR CODE HERE ***"
+        Place.add_insect(self,insect)
+        if(not insect.watersafe):
+            insect.reduce_armor(insect.armor)
         # END Problem 3
 
 class FireAnt(Ant):
