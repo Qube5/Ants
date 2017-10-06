@@ -509,18 +509,16 @@ def make_stun(action):
 def apply_effect(effect, bee, duration):
     """Apply a status effect to a BEE that lasts for DURATION turns."""
     # BEGIN Problem EC
+    if(not 'Bee' in str(bee.action)):
+        duration -= 2
     original_action = bee.action
     def delayed_effect(colony):
         nonlocal duration
         if (duration <= 1):
-            # bee.action = type(bee).action
             bee.action = original_action
-            # return
         effect(type(bee).action)(bee,colony)
-        # effect(bee.action)(bee,colony)
         duration -= 1
     bee.action = delayed_effect
-
     # END Problem EC
 
 class SlowThrower(ThrowerAnt):
@@ -537,7 +535,6 @@ class SlowThrower(ThrowerAnt):
         if target:
             apply_effect(make_slow, target, 3)
 
-
 class StunThrower(ThrowerAnt):
     """ThrowerAnt that causes Stun on Bees."""
 
@@ -551,7 +548,6 @@ class StunThrower(ThrowerAnt):
     def throw_at(self, target):
         if target:
             apply_effect(make_stun, target, 1)
-
 
 ##################
 # Bees Extension #
@@ -937,56 +933,55 @@ def make_insane_assault_plan():
     plan.add_wave(Boss, 30, 30, 2)
     return plan
 
+from utils import *
+@main
+def run(*args):
+    Insect.reduce_armor = class_method_wrapper(Insect.reduce_armor,
+            pre=print_expired_insects)
+    start_with_strategy(args, interactive_strategy)
+
 #
-# from utils import *
-# @main
-# def run(*args):
-#     Insect.reduce_armor = class_method_wrapper(Insect.reduce_armor,
-#             pre=print_expired_insects)
-#     start_with_strategy(args, interactive_strategy)
-
-
-hive, layout = Hive(AssaultPlan()), dry_layout
-dimensions = (1, 9)
-colony = AntColony(None, hive, ant_types(), layout, dimensions)
-# Testing long effect stack
-stun = StunThrower()
-slow = SlowThrower()
-bee = Bee(3)
-colony.places["tunnel_0_0"].add_insect(stun)
-colony.places["tunnel_0_1"].add_insect(slow)
-colony.places["tunnel_0_4"].add_insect(bee)
-for _ in range(3): # slow bee three times
-    slow.action(colony)
-stun.action(colony) # stun bee once
-colony.time = 0
-bee.action(colony) # stunned
-print(bee.place.name)
-print(slow.armor)
-colony.time = 1
-bee.action(colony) # slowed thrice
-print(bee.place.name)
-print(slow.armor)
-colony.time = 2
-bee.action(colony) # slowed thrice
-print(bee.place.name)
-print(slow.armor)
-colony.time = 3
-bee.action(colony) # slowed twice
-print(bee.place.name)
-print(slow.armor)
-colony.time = 4
-bee.action(colony) # slowed twice
-print(bee.place.name)
-print(slow.armor)
-colony.time = 5
-bee.action(colony) # slowed once
-print(bee.place.name)
-print(slow.armor)
-colony.time = 6
-bee.action(colony) # slowed once
-print(bee.place.name)
-print(slow.armor)
-colony.time = 7
-bee.action(colony) # status effects have worn off
-print(slow.armor)
+# hive, layout = Hive(AssaultPlan()), dry_layout
+# dimensions = (1, 9)
+# colony = AntColony(None, hive, ant_types(), layout, dimensions)
+# # Testing long effect stack
+# stun = StunThrower()
+# slow = SlowThrower()
+# bee = Bee(3)
+# colony.places["tunnel_0_0"].add_insect(stun)
+# colony.places["tunnel_0_1"].add_insect(slow)
+# colony.places["tunnel_0_4"].add_insect(bee)
+# for _ in range(3): # slow bee three times
+#     slow.action(colony)
+# stun.action(colony) # stun bee once
+# colony.time = 0
+# bee.action(colony) # stunned
+# print(bee.place.name)
+# print(slow.armor)
+# colony.time = 1
+# bee.action(colony) # slowed thrice
+# print(bee.place.name)
+# print(slow.armor)
+# colony.time = 2
+# bee.action(colony) # slowed thrice
+# print(bee.place.name)
+# print(slow.armor)
+# colony.time = 3
+# bee.action(colony) # slowed twice
+# print(bee.place.name)
+# print(slow.armor)
+# colony.time = 4
+# bee.action(colony) # slowed twice
+# print(bee.place.name)
+# print(slow.armor)
+# colony.time = 5
+# bee.action(colony) # slowed once
+# print(bee.place.name)
+# print(slow.armor)
+# colony.time = 6
+# bee.action(colony) # slowed once
+# print(bee.place.name)
+# print(slow.armor)
+# colony.time = 7
+# bee.action(colony) # status effects have worn off
+# print(slow.armor)
