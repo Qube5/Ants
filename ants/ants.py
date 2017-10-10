@@ -25,7 +25,7 @@ class Place(object):
         self.entrance = None  # A Place
         # Phase 1: Add an entrance to the exit
         # BEGIN Problem 2
-        if(self.exit != None):
+        if self.exit != None:
             self.exit.entrance = self
         # END Problem 2
 
@@ -65,8 +65,9 @@ class Place(object):
         """
         if insect.is_ant:
             # Phase 6: Special Handling for BodyguardAnt and QueenAnt
-            if( (isinstance(self.ant,QueenAnt) and not self.ant.impostor)
-                or (self.ant.ant != None and isinstance(self.ant.ant, QueenAnt) and not self.ant.ant.impostor)):
+            if (isinstance(self.ant,QueenAnt) and not self.ant.impostor or
+                self.ant.ant != None and isinstance(self.ant.ant, QueenAnt) and
+                not self.ant.ant.impostor):
                 return
             if self.ant is insect:
                 if hasattr(self.ant, 'container') and self.ant.container:
@@ -74,7 +75,8 @@ class Place(object):
                 else:
                     self.ant = None
             else:
-                if hasattr(self.ant, 'container') and self.ant.container and self.ant.ant is insect:
+                if (hasattr(self.ant, 'container') and self.ant.container and
+                    self.ant.ant is insect):
                     self.ant.ant = None
                 else:
                     assert False, '{0} is not in {1}'.format(insect, self)
@@ -209,13 +211,12 @@ class ThrowerAnt(Ant):
         # BEGIN Problem 5
         curr_place = self.place
         index = 0
-        while(curr_place.entrance):
-            if(curr_place.bees != [] and self.min_range<=index<=self.max_range):
-                break
+        while (curr_place.entrance and not (curr_place.bees != [] and
+               self.min_range <= index <= self.max_range)):
             curr_place = curr_place.entrance
-            if(curr_place.name == 'Hive'):
+            if curr_place.name == 'Hive':
                 return None
-            index+=1
+            index += 1
         return random_or_none(curr_place.bees)
         # END Problem 5
 
@@ -244,7 +245,7 @@ class Water(Place):
         """Add INSECT if it is watersafe, otherwise reduce its armor to 0."""
         # BEGIN Problem 3
         Place.add_insect(self,insect)
-        if(not insect.watersafe):
+        if not insect.watersafe:
             insect.reduce_armor(insect.armor)
         # END Problem 3
 
@@ -265,7 +266,7 @@ class FireAnt(Ant):
         """
         # BEGIN Problem 4
         self.armor -= amount
-        if(self.armor <= 0):
+        if self.armor <= 0:
             bees = list(self.place.bees)
             for bee in bees:
                 bee.reduce_armor(self.damage)
@@ -385,7 +386,7 @@ class BodyguardAnt(Ant):
 
     def action(self, colony):
         # BEGIN Problem 11
-        if self.ant != None:
+        if self.ant is not None:
             self.ant.action(colony)
         # END Problem 11
 
@@ -443,19 +444,13 @@ class QueenAnt(ScubaThrower):  # You should change this line
 
             curr_place = self.place.exit
             while(curr_place.exit):
-                if(curr_place.ant != None):
-                    if(curr_place.ant.damage == type(curr_place.ant).damage):
+                if curr_place.ant is not None:
+                    if curr_place.ant.damage == type(curr_place.ant).damage:
                         curr_place.ant.damage *= 2
-                    if(curr_place.ant.container and curr_place.ant.ant != None and curr_place.ant.ant.damage == type(curr_place.ant.ant).damage):
+                    if (curr_place.ant.container and curr_place.ant.ant is not None and
+                        curr_place.ant.ant.damage == type(curr_place.ant.ant).damage):
                         curr_place.ant.ant.damage *= 2
                 curr_place = curr_place.exit
-            # while(curr_place.exit):
-            #     if(curr_place.ant != None and curr_place.ant.damage == type(curr_place.ant).damage):
-            #         if(curr_place.ant.container and curr_place.ant.ant != None and curr_place.ant.ant.damage == type(curr_place.ant.ant).damage):
-            #             curr_place.ant.ant.damage *= 2
-            #         curr_place.ant.damage *= 2
-            #     curr_place = curr_place.exit
-
         # END Problem 13
 
     def reduce_armor(self, amount):
@@ -489,7 +484,7 @@ def make_slow(action):
     """
     # BEGIN Problem EC
     def act(bee,colony):
-        if(colony.time%2 == 0):         #if(colony.time%2 == 0) or type(bee).action == action):
+        if colony.time % 2 == 0:
             type(bee).action(bee,colony)
         return
     return act
@@ -509,12 +504,13 @@ def make_stun(action):
 def apply_effect(effect, bee, duration):
     """Apply a status effect to a BEE that lasts for DURATION turns."""
     # BEGIN Problem EC
-    if(not 'Bee' in str(bee.action)):
+    if not 'Bee' in str(bee.action):
         duration -= 2
     original_action = bee.action
+
     def delayed_effect(colony):
         nonlocal duration
-        if (duration <= 1):
+        if duration <= 1:
             bee.action = original_action
         effect(type(bee).action)(bee,colony)
         duration -= 1
@@ -571,7 +567,7 @@ class Hornet(Bee):
                 super().action(colony)
 
     def __setattr__(self, name, value):
-        if name != 'action':
+        if name is not 'action':
             object.__setattr__(self, name, value)
 
 class NinjaBee(Bee):
@@ -939,49 +935,3 @@ def run(*args):
     Insect.reduce_armor = class_method_wrapper(Insect.reduce_armor,
             pre=print_expired_insects)
     start_with_strategy(args, interactive_strategy)
-
-#
-# hive, layout = Hive(AssaultPlan()), dry_layout
-# dimensions = (1, 9)
-# colony = AntColony(None, hive, ant_types(), layout, dimensions)
-# # Testing long effect stack
-# stun = StunThrower()
-# slow = SlowThrower()
-# bee = Bee(3)
-# colony.places["tunnel_0_0"].add_insect(stun)
-# colony.places["tunnel_0_1"].add_insect(slow)
-# colony.places["tunnel_0_4"].add_insect(bee)
-# for _ in range(3): # slow bee three times
-#     slow.action(colony)
-# stun.action(colony) # stun bee once
-# colony.time = 0
-# bee.action(colony) # stunned
-# print(bee.place.name)
-# print(slow.armor)
-# colony.time = 1
-# bee.action(colony) # slowed thrice
-# print(bee.place.name)
-# print(slow.armor)
-# colony.time = 2
-# bee.action(colony) # slowed thrice
-# print(bee.place.name)
-# print(slow.armor)
-# colony.time = 3
-# bee.action(colony) # slowed twice
-# print(bee.place.name)
-# print(slow.armor)
-# colony.time = 4
-# bee.action(colony) # slowed twice
-# print(bee.place.name)
-# print(slow.armor)
-# colony.time = 5
-# bee.action(colony) # slowed once
-# print(bee.place.name)
-# print(slow.armor)
-# colony.time = 6
-# bee.action(colony) # slowed once
-# print(bee.place.name)
-# print(slow.armor)
-# colony.time = 7
-# bee.action(colony) # status effects have worn off
-# print(slow.armor)
