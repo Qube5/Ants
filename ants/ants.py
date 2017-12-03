@@ -39,7 +39,7 @@ class Place(object):
         There can be any number of Bees in a Place.
         """
         if insect.is_ant:
-            if self.ant is None:
+            if not self.ant:
                 self.ant = insect
             elif self.ant.can_contain(insect):
                 # Phase 6: Special handling for BodyguardAnt
@@ -48,7 +48,7 @@ class Place(object):
                 insect.contain_ant(self.ant)
                 self.ant = insect
             else:
-                assert self.ant is None, 'Two ants in {0}'.format(self)
+                assert not self.ant, 'Two ants in {0}'.format(self)
         else:
             self.bees.append(insect)
         insect.place = self
@@ -66,7 +66,7 @@ class Place(object):
         if insect.is_ant:
             # Phase 6: Special Handling for BodyguardAnt and QueenAnt
             if (isinstance(self.ant,QueenAnt) and not self.ant.impostor or
-                self.ant.ant != None and isinstance(self.ant.ant, QueenAnt) and
+                self.ant.ant and isinstance(self.ant.ant, QueenAnt) and
                 not self.ant.ant.impostor):
                 return
             if self.ant is insect:
@@ -173,7 +173,7 @@ class Ant(Insect):
 
     def can_contain(self, other):
         # BEGIN Problem 11
-        return self.container and not other.container and self.ant == None
+        return self.container and not other.container and not self.ant
         # END Problem 11
 
 class HarvesterAnt(Ant):
@@ -211,7 +211,7 @@ class ThrowerAnt(Ant):
         # BEGIN Problem 5
         curr_place = self.place
         index = 0
-        while (curr_place.entrance and not (curr_place.bees != [] and
+        while (curr_place.entrance and not (curr_place.bees and
                self.min_range <= index <= self.max_range)):
             curr_place = curr_place.entrance
             if curr_place.name == 'Hive':
@@ -265,12 +265,18 @@ class FireAnt(Ant):
         the current place.
         """
         # BEGIN Problem 4
-        self.armor -= amount
+        # self.armor -= amount
+        # if self.armor <= 0:
+        #     bees = list(self.place.bees)
+        #     for bee in bees:
+        #         bee.reduce_armor(self.damage)
+        #     self.place.remove_insect(self)
+
+        place = self.place
+        Ant.reduce_armor(self,amount)
         if self.armor <= 0:
-            bees = list(self.place.bees)
-            for bee in bees:
+            for bee in list(place.bees):
                 bee.reduce_armor(self.damage)
-            self.place.remove_insect(self)
         # END Problem 4
 
 class LongThrower(ThrowerAnt):
@@ -443,11 +449,11 @@ class QueenAnt(ScubaThrower):  # You should change this line
             ThrowerAnt.action(self, colony)
 
             curr_place = self.place.exit
-            while(curr_place.exit):
-                if curr_place.ant is not None:
+            while curr_place.exit:
+                if curr_place.ant:
                     if curr_place.ant.damage == type(curr_place.ant).damage:
                         curr_place.ant.damage *= 2
-                    if (curr_place.ant.container and curr_place.ant.ant is not None and
+                    if (curr_place.ant.container and curr_place.ant.ant and
                         curr_place.ant.ant.damage == type(curr_place.ant.ant).damage):
                         curr_place.ant.ant.damage *= 2
                 curr_place = curr_place.exit
@@ -703,7 +709,7 @@ class AntColony(object):
     def remove_ant(self, place_name):
         """Remove an Ant from the Colony."""
         place = self.places[place_name]
-        if place.ant is not None:
+        if place.ant:
             place.remove_insect(place.ant)
 
     @property
